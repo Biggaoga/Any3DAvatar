@@ -135,6 +135,12 @@
 				color: red;
 				pointer-events: none;
 			}
+			#message[data-state="empty"] {
+				color: #6f7a8c;
+				font-size: 14px;
+				font-weight: 600;
+				text-shadow: none;
+			}
 
 			details {
 				font-size: small;
@@ -186,11 +192,17 @@
 			body.nohf #progress, body.nohf .cube-face {
 				background: #ff9d0d;
 			}
+			body.embedded #info,
+			body.embedded #quality,
+			body.embedded #caminfo {
+				display: none;
+			}
 		</style>
 	</head>
 	<body>
 		<script>
 			if(location.host.includes('hf.space')) document.body.classList.add('nohf');
+			if(window.self !== window.top) document.body.classList.add('embedded');
 		</script>
 		<div id="info">
 			<h3 class="nohf">WebGL 3D Gaussian Splat Viewer</h3>

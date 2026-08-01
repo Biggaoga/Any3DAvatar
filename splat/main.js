@@ -740,7 +740,7 @@ let defaultViewMatrix = [
     -1.0, 0.0, 0.0, 0.0, 
     0.0, 0.0, 1.0, 0.0, 
     0.0, -1.0, 0.0, 0.0, 
-    0.0, 0.0, 5.0, 1.0,
+    0.0, 0.0, 8.0, 1.0,
 ];
 
 let viewMatrix = defaultViewMatrix;
@@ -751,17 +751,26 @@ async function main() {
         viewMatrix = JSON.parse(decodeURIComponent(location.hash.slice(1)));
         carousel = false;
     } catch (err) {}
-   // 先获取url参数
-const inputUrl = params.get("url") || "train.splat";
-let url;
-// 判断是不是完整的http/https链接
-if (inputUrl.startsWith('http://') || inputUrl.startsWith('https://')) {
-  // 完整外网链接，直接用
-  url = new URL(inputUrl);
-} else {
-  // 本地相对/绝对路径，基于当前页面地址解析
-  url = new URL(inputUrl, window.location.href);
-}
+    // An explicitly empty URL is used by the parent page as a model placeholder.
+    const requestedUrl = params.get("url");
+    if (params.has("url") && !requestedUrl.trim()) {
+        document.getElementById("spinner").style.display = "none";
+        const message = document.getElementById("message");
+        message.dataset.state = "empty";
+        message.innerText = "3D model preview";
+        return;
+    }
+
+    const inputUrl = requestedUrl || "train.splat";
+    let url;
+    // 判断是不是完整的http/https链接
+    if (inputUrl.startsWith('http://') || inputUrl.startsWith('https://')) {
+        // 完整外网链接，直接用
+        url = new URL(inputUrl);
+    } else {
+        // 本地相对/绝对路径，基于当前页面地址解析
+        url = new URL(inputUrl, window.location.href);
+    }
     //const url = params.get("url") || "model.splat";
     const req = await fetch(url, {
         mode: "cors", // no-cors, *cors, same-origin

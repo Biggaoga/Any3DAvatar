@@ -1,517 +1,507 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <meta charset="utf-8">
-  <meta name="description"
-    content="Any3DAvatar takes a single image of a human face as input and generates a high-fidelity 3D Gaussian head representation.">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Any3DAvatar: Fast and High-Quality Full-Head 3D Avatar Reconstruction from Single Portrait Image</title>
-
-  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
-
-  <link rel="stylesheet" href="./static/css/bulma.min.css">
-  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
-  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
-  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
-  <link rel="stylesheet" href="./static/css/style.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <meta name="description"
+    content="Any3DAvatar reconstructs a high-quality full-head 3D Gaussian avatar from a single portrait image.">
+  <meta name="theme-color" content="#f7f8fb">
+  <title>Any3DAvatar | Single-Image Full-Head 3D Avatar Reconstruction</title>
   <link rel="stylesheet" href="./static/css/index.css">
-  <link rel="icon" href="./static/images/icon.svg">
-
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script defer src="./static/js/fontawesome.all.min.js"></script>
-  <script src="./static/js/bulma-carousel.min.js"></script>
-  <script src="./static/js/bulma-slider.min.js"></script>
-  <script src="./static/js/index.js"></script>
-  <script src="./static/js/script.js"></script>
+  <script defer src="./static/js/site.js"></script>
 </head>
 
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
 
-
-  <section class="hero">
-    <div class="hero-body">
-      <div class="container is-max-desktop">
-        <div class="columns is-centered">
-          <div class="column has-text-centered">
-            <h1 class="title is-1 publication-title">
-              Any3DAvatar: Fast and High-Quality Full-Head 3D Avatar Reconstruction from Single Portrait Image
-            </h1>
-
-            <div class="is-size-5 publication-authors">
-            </div>
-
-            <div class="column has-text-centered">
-              <div class="publication-links">
-                <!-- Video Link. -->
-                <!-- Code Link. -->
-                <!-- Demo Link. -->
-                <!-- <span class="link-block">
-                  <!-- Submission Status. -->
-                  <div class="title-row">
-                    <span class="title is-4 publication-venue"></span>
-                  </div>
-              </div>
-            </div>
-          </div>
-        </div>
-  </section>
-
-
-  <!-- Abstract. -->
-  <section class="section">
-    <div class="container is-max-desktop">
-      <div class="columns is-centered has-text-centered">
-        <div class="column is-four-fifths">
-          <h2 class="title is-3">Abstract</h2>
-          <div class="content has-text-justified">
-            <p>
-              Reconstructing a complete 3D head from a single portrait remains challenging because existing methods
-              still face a sharp quality-speed trade-off: high-fidelity pipelines often rely on multi-stage processing
-              and per-subject optimization, while fast feed-forward models struggle with complete geometry and fine
-              appearance details.
-              To bridge this gap, we propose Any3DAvatar, a fast and high-quality method for single-image 3D Gaussian
-              head avatar generation, whose fastest setting reconstructs a full head in under one second while
-              preserving high-fidelity geometry and texture.
-              First, we build AnyHead, a unified data suite that combines identity diversity, dense multi-view
-              supervision, and realistic accessories, filling the main gaps of existing head data in coverage, full-head
-              geometry, and complex appearance.
-              Second, rather than sampling unstructured noise, we initialize from a Plücker-aware structured 3D Gaussian
-              scaffold and perform one-step conditional denoising, formulating full-head reconstruction into a single
-              forward pass while retaining high fidelity.
-              Third, we introduce auxiliary view-conditioned appearance supervision on the same latent tokens alongside
-              3D Gaussian reconstruction, improving novel-view texture details at zero extra inference cost.
-              Experiments show that Any3DAvatar outperforms prior single-image full-head reconstruction methods in
-              rendering fidelity while remaining substantially faster.
-            </p>
-          </div>
-        </div>
-      </div>
+  <header class="site-header">
+    <div class="page-shell header-inner">
+      <a class="brand" href="#top" aria-label="Any3DAvatar home">
+        <span class="brand-mark" aria-hidden="true">A3D</span>
+        <span>Any3DAvatar</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="#overview">Overview</a>
+        <a href="#dataset">Dataset</a>
+        <a href="#method">Method</a>
+        <a href="#results">Results</a>
+        <a href="#extensions">Extensions</a>
+        <a href="#comparisons">Comparisons</a>
+      </nav>
+      <button class="motion-toggle" id="motion-toggle" type="button" aria-pressed="false">
+        Pause motion
+      </button>
     </div>
-  </section>
-  <!--/ Abstract. -->
+  </header>
 
-  <!-- Paper Video. -->
-  <!-- <section class="section">
-  <div class="container is-max-desktop">
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-four-fifths">
-        <h2 class="title is-3">Video</h2>
-        <div class="publication-video">
-          <iframe src="https://www.youtube.com/embed/lf0Gck9UOcU?rel=0&amp;showinfo=0"
-                  frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        </div>
-      </div>
-    </div>
-  </div>
-</section> -->
-  <!--/ Paper Video. -->
-
-  <!-- Method. -->
-  <section class="section">
-    <div class="container is-max-desktop">
-      <div class="columns is-centered has-text-centered">
-        <div class="column is-full-width">
-          <h2 class="title is-3">Method</h2>
-          <div class="content has-text-justified">
-            <div class="columns is-centered has-text-centered">
-              <img src="static/images/pipeline.jpg" width="75%">
-            </div>
-            <p>
-              <strong>Pipeline of <i>Any3DAvatar</i>.</strong> Given a single portrait, we extract image and Gaussian
-              tokens, jointly denoise them with a DiT backbone, and decode the outputs into 3D Gaussian point clouds
-              through a single-step feed-forward path at inference. During training, we additionally supervise the same
-              tokens with a view-conditioned image decoding branch and a multi-task objective that combines
-              reconstruction and perceptual losses.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <!-- / Method. -->
-
-
-  <!-- Results. -->
-  <section class="section">
-    <div class="container is-max-desktop">
-      <div class="columns is-centered">
-        <div class="column is-full-width">
-          <h2 class="title is-3 has-text-centered">Results</h2>
-          <h3 class="title is-4 has-text-centered">Single Image to 3D Head</h3>
-          <p>
-            <i>Any3DAvayar</i> lifts a single facial image to a detailed 3D reconstruction with preserved identity
-            features.
+  <main id="main-content">
+    <section class="hero-section" id="top">
+      <div class="page-shell hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Single-image full-head reconstruction</p>
+          <h1>Fast and high-quality <span>3D avatar reconstruction</span> from a single portrait</h1>
+          <p class="hero-summary">
+            Any3DAvatar directly generates a complete 3D Gaussian head through few-step conditional denoising,
+            preserving identity, full-head geometry, and novel-view appearance without per-subject optimization.
           </p>
-          <!-- row 1 -->
-          <h3 class="title is-4 has-text-centered"></h3>
-          <div class="container is-max-desktop">
-            <div class="columns is-centered">
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <img src="./static/images/in1.png" width="75%">
-                  <video muted loop autoplay>
-                    <!-- Your video here -->
-                    <source src="./static/videos/video1.mp4" type="video/mp4">
-                  </video>
-                  <h2 style="text-align: center;">
-                    <a
-                      href="splat/index.html?url=https://huggingface.co/datasets/annoymity/anonymousply/resolve/main/model1.ply">Open
-                      Interactive Viewer
-                    </a>
-                  </h2>
-              </div>
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <img src="./static/images/in2.png" width="75%">
-                </h2>
-                <video muted loop autoplay>
-                  <!-- Your video here -->
-                  <source src="./static/videos/video2.mp4" type="video/mp4">
-                </video>
-                <h2 style="text-align: center;">
-                  <a
-                    href="splat/index.html?url=https://huggingface.co/datasets/annoymity/anonymousply/resolve/main/model2.ply">Open
-                    Interactive Viewer
-                  </a>
-                </h2>
-              </div>
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <img src="./static/images/in4.png" width="75%">
-                </h2>
-                <video muted loop autoplay>
-                  <!-- Your video here -->
-                  <source src="./static/videos/video4.mp4" type="video/mp4">
-                </video>
-                <h2 style="text-align: center;">
-                  <a
-                    href="splat/index.html?url=https://huggingface.co/datasets/annoymity/anonymousply/resolve/main/model4.ply">Open
-                    Interactive Viewer
-                  </a>
-                </h2>
-              </div>
-            </div>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#results">Explore results</a>
+            <a class="button button-secondary" href="#method">Read the method</a>
+            <a class="button button-secondary" href="#dataset">View dataset</a>
+            <a class="button button-secondary" href="#comparisons">View experimental results</a>
           </div>
-          <!-- row 2 -->
-          <h3 class="title is-4 has-text-centered"></h3>
-          <div class="container is-max-desktop">
-            <div class="columns is-centered">
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <img src="./static/images/in20.png" width="75%">
-                </h2>
-                <video muted loop autoplay>
-                  <!-- Your video here -->
-                  <source src="./static/videos/video20.mp4" type="video/mp4">
-                </video>
-                <h2 style="text-align: center;">
-                  <a
-                    href="splat/index.html?url=https://huggingface.co/datasets/annoymity/anonymousply/resolve/main/model20.ply">Open
-                    Interactive Viewer
-                  </a>
-                </h2>
-              </div>
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <img src="./static/images/in7.png" width="75%">
-                </h2>
-                <video muted loop autoplay>
-                  <!-- Your video here -->
-                  <source src="./static/videos/video7.mp4" type="video/mp4">
-                </video>
-                <h2 style="text-align: center;">
-                  <a
-                    href="splat/index.html?url=https://huggingface.co/datasets/annoymity/anonymousply/resolve/main/model7.ply">Open
-                    Interactive Viewer
-                  </a>
-                </h2>
-              </div>
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <img src="./static/images/in12.png" width="75%">
-                </h2>
-                <video muted loop autoplay>
-                  <!-- Your video here -->
-                  <source src="./static/videos/video12.mp4" type="video/mp4">
-                </video>
-                <h2 style="text-align: center;">
-                  <a
-                    href="splat/index.html?url=https://huggingface.co/datasets/annoymity/anonymousply/resolve/main/model12.ply">Open
-                    Interactive Viewer
-                  </a>
-                </h2>
-              </div>
+          <dl class="hero-facts">
+            <div>
+              <dt>Input</dt>
+              <dd>1 portrait</dd>
             </div>
-          </div>
-          <!-- row 3: 案例 7-9 -->
-          <h3 class="title is-4 has-text-centered"></h3>
-          <div class="container is-max-desktop">
-            <div class="columns is-centered">
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <img src="./static/images/in14.png" width="75%">
-                </h2>
-                <video muted loop autoplay>
-                  <source src="./static/videos/video14.mp4" type="video/mp4">
-                </video>
-                <h2 style="text-align: center;">
-                  <a
-                    href="splat/index.html?url=https://huggingface.co/datasets/annoymity/anonymousply/resolve/main/model14.ply">Open
-                    Interactive Viewer</a>
-                </h2>
-              </div>
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <img src="./static/images/in15.png" width="75%">
-                </h2>
-                <video muted loop autoplay>
-                  <source src="./static/videos/video15.mp4" type="video/mp4">
-                </video>
-                <h2 style="text-align: center;">
-                  <a
-                    href="splat/index.html?url=https://huggingface.co/datasets/annoymity/anonymousply/resolve/main/model15.ply">Open
-                    Interactive Viewer</a>
-                </h2>
-              </div>
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <img src="./static/images/in16.png" width="75%">
-                </h2>
-                <video muted loop autoplay>
-                  <source src="./static/videos/video16.mp4" type="video/mp4">
-                </video>
-                <h2 style="text-align: center;">
-                  <a
-                    href="splat/index.html?url=https://huggingface.co/datasets/annoymity/anonymousply/resolve/main/model16.ply">Open
-                    Interactive Viewer</a>
-                </h2>
-              </div>
+            <div>
+              <dt>Output</dt>
+              <dd>Full-head 3DGS</dd>
             </div>
-          </div>
+            <div>
+              <dt>Fastest setting</dt>
+              <dd>0.64 seconds</dd>
+            </div>
+          </dl>
+        </div>
 
-          <!-- row 4: 案例 10-12 -->
-          <h3 class="title is-4 has-text-centered"></h3>
-          <div class="container is-max-desktop">
-            <div class="columns is-centered">
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <img src="./static/images/in17.png" width="75%">
-                </h2>
-                <video muted loop autoplay>
-                  <source src="./static/videos/video17.mp4" type="video/mp4">
-                </video>
-                <h2 style="text-align: center;">
-                  <a
-                    href="splat/index.html?url=https://huggingface.co/datasets/annoymity/anonymousply/resolve/main/model17.ply">Open
-                    Interactive Viewer</a>
-                </h2>
-              </div>
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <img src="./static/images/in18.png" width="75%">
-                </h2>
-                <video muted loop autoplay>
-                  <source src="./static/videos/video18.mp4" type="video/mp4">
-                </video>
-                <h2 style="text-align: center;">
-                  <a
-                    href="splat/index.html?url=https://huggingface.co/datasets/annoymity/anonymousply/resolve/main/model18.ply">Open
-                    Interactive Viewer</a>
-                </h2>
-              </div>
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <img src="./static/images/in19.png" width="75%">
-                </h2>
-                <video muted loop autoplay>
-                  <source src="./static/videos/video19.mp4" type="video/mp4">
-                </video>
-                <h2 style="text-align: center;">
-                  <a
-                    href="splat/index.html?url=https://huggingface.co/datasets/annoymity/anonymousply/resolve/main/model19.ply">Open
-                    Interactive Viewer</a>
-                </h2>
-              </div>
+        <figure class="hero-demo media-panel">
+          <div class="hero-demo-grid">
+            <div class="media-cell">
+              <span class="media-label">Input portrait</span>
+              <img src="./static/images/in1.png" alt="Input portrait used for the reconstruction example"
+                fetchpriority="high">
+            </div>
+            <div class="demo-arrow" aria-hidden="true">→</div>
+            <div class="media-cell">
+              <span class="media-label">Reconstructed full head</span>
+              <video muted loop playsinline preload="metadata"
+                title="Novel-view rotation of the reconstructed full-head avatar">
+                <source src="./static/videos/video1.mp4" type="video/mp4">
+              </video>
             </div>
           </div>
-          <div style="margin-top: 4rem;"></div>
-          <h3 class="title is-4 has-text-centered">4D Dynamic Head Reconstruction</h3>
-          <div class="container is-max-desktop" style="margin-top: 2rem;">
-            <div class="columns is-centered is-mobile">
-              <div class="column has-text-centered">
-                <h4 class="title is-5">Input Image</h4>
-              </div>
-              <div class="column has-text-centered">
-                <h4 class="title is-5">driving video</h4>
-              </div>
-              <div class="column has-text-centered">
-                <h4 class="title is-5">4D Result</h4>
-              </div>
-            </div>
+          <figcaption>A single portrait is lifted into a view-consistent, animatable full-head representation.</figcaption>
+        </figure>
+      </div>
+    </section>
 
-            <!-- 第一组案例：和上方案例尺寸完全统一 -->
-            <div class="columns is-centered">
-              <!-- 第一列：输入图 -->
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <img src="./static/images/4D1.jpg" width="75%">
-                </h2>
-              </div>
-              <!-- 第二列：结果1 -->
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <video muted loop autoplay width="75%">
-                    <source src="./static/videos/4D11.mp4" type="video/mp4">
-                  </video>
-                </h2>
-              </div>
-              <!-- 第三列：结果2 -->
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <video muted loop autoplay width="75%">
-                    <source src="./static/videos/4D12.mp4" type="video/mp4">
-                  </video>
-                </h2>
-              </div>
+    <section class="section" id="overview">
+      <div class="page-shell narrow-shell">
+        <div class="section-heading">
+          <p class="section-kicker">Overview</p>
+          <h2>Why Any3DAvatar?</h2>
+        </div>
+        <p class="overview-intro">
+          Prior single-image head reconstruction methods face two coupled bottlenecks: they either compromise
+          reconstruction quality or require an expensive processing pipeline to obtain high-quality results.
+        </p>
+        <div class="problem-grid">
+          <article class="problem-card">
+            <div class="problem-card-heading">
+              <span class="problem-number">01</span>
+              <p>Quality bottleneck</p>
             </div>
+            <h3>Incomplete and inconsistent full-head reconstruction</h3>
+            <ul>
+              <li>Fragile details around teeth, hair, and accessories</li>
+              <li>Incomplete back-of-head geometry and appearance</li>
+              <li>Identity and texture degradation across novel views</li>
+            </ul>
+          </article>
+          <article class="problem-card">
+            <div class="problem-card-heading">
+              <span class="problem-number">02</span>
+              <p>Speed bottleneck</p>
+            </div>
+            <h3>High-quality outputs depend on costly processing</h3>
+            <ul>
+              <li>Heavy preprocessing before reconstruction</li>
+              <li>Multi-stage pipelines with accumulated overhead</li>
+              <li>Per-subject optimization repeated for each identity</li>
+            </ul>
+          </article>
+        </div>
+        <div class="overview-response">
+          <span>Our response</span>
+          <p>
+            Any3DAvatar addresses both bottlenecks with a single-stage 3D Gaussian framework: few-step conditional
+            denoising produces a complete, high-fidelity head directly from one portrait, with inference as fast as
+            <strong>0.64 seconds</strong>.
+          </p>
+        </div>
 
-            <!-- 第二组案例（如果有，直接复制上面的columns块即可） -->
-            <div class="columns is-centered">
-              <!-- 第一列：输入图 -->
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <img src="./static/images/4D2.png" width="75%">
-                </h2>
+        <div class="contribution-grid">
+          <article class="contribution-card">
+            <span class="card-index">01</span>
+            <h3>Structured 3D generation</h3>
+            <p>Plücker-conditioned multi-view noise-token initialization provides a structured starting point for full-head reconstruction.</p>
+          </article>
+          <article class="contribution-card">
+            <span class="card-index">02</span>
+            <h3>Appearance supervision</h3>
+            <p>A view-conditioned image branch supervises shared latent tokens without adding inference-time computation.</p>
+          </article>
+          <article class="contribution-card">
+            <span class="card-index">03</span>
+            <h3>Diverse training data</h3>
+            <p>AnyHead combines identity coverage, dense viewpoints, complete geometry, and realistic accessories.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section dataset-section" id="dataset">
+      <div class="page-shell">
+        <div class="section-heading split-heading">
+          <div>
+            <p class="section-kicker">Dataset</p>
+            <h2>AnyHead data suite</h2>
+          </div>
+          <p>
+            AnyHead combines diverse identities, dense multi-view supervision, complete-head geometry, and
+            accessory-rich samples to support robust full-head reconstruction.
+          </p>
+        </div>
+
+        <figure class="dataset-figure">
+          <div class="dataset-scroll-header">
+            <span>Dataset overview</span>
+            <span>Scroll horizontally →</span>
+          </div>
+          <div class="dataset-scroll" tabindex="0"
+            aria-label="Horizontally scrollable overview of the AnyHead dataset">
+            <img src="./static/images/dataset_overview_collage.png"
+              alt="Wide collage presenting identities, viewpoints, geometry, and appearance coverage in the AnyHead dataset"
+              loading="lazy">
+          </div>
+          <figcaption>
+            Overview of the identity diversity, multi-view coverage, and appearance variation represented in AnyHead.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section section-tinted" id="method">
+      <div class="page-shell">
+        <div class="section-heading split-heading">
+          <div>
+            <p class="section-kicker">Method</p>
+            <h2>A direct path from portrait to 3D Gaussians</h2>
+          </div>
+          <p>
+            Image context and a structured Gaussian scaffold are jointly processed by a DiT backbone, then decoded into
+            a renderable full-head avatar.
+          </p>
+        </div>
+
+        <figure class="pipeline-figure">
+          <img src="./static/images/pipeline.jpg"
+            alt="Any3DAvatar pipeline showing image tokenization, Gaussian noise tokenization, DiT denoising, and image and Gaussian decoders"
+            loading="lazy">
+          <figcaption>
+            <strong>Any3DAvatar pipeline.</strong> The image and Gaussian tokens are jointly denoised; training uses both
+            view-conditioned appearance decoding and Gaussian reconstruction.
+          </figcaption>
+        </figure>
+
+        <ol class="method-steps">
+          <li>
+            <span>1</span>
+            <div>
+              <h3>Tokenize the observation</h3>
+              <p>Encode the portrait with Plücker rays and initialize a structured view-conditioned Gaussian scaffold.</p>
+            </div>
+          </li>
+          <li>
+            <span>2</span>
+            <div>
+              <h3>Joint conditional denoising</h3>
+              <p>Process context and Gaussian tokens together through the shared DiT backbone for a small number of steps.</p>
+            </div>
+          </li>
+          <li>
+            <span>3</span>
+            <div>
+              <h3>Decode geometry and appearance</h3>
+              <p>Produce renderable 3D Gaussians while the auxiliary image branch strengthens novel-view texture learning.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section" id="results">
+      <div class="page-shell">
+        <div class="section-heading split-heading">
+          <div>
+            <p class="section-kicker">Core results</p>
+            <h2>Single portrait to complete 3D head</h2>
+          </div>
+          <p>
+            Select an identity to inspect the input and its reconstructed novel-view turntable. The examples cover
+            varied ages, hairstyles, expressions, and capture conditions.
+          </p>
+        </div>
+
+        <div class="result-explorer">
+          <div class="explorer-stage">
+            <div class="explorer-panel">
+              <span class="media-label">Input</span>
+              <img id="explorer-input" src="./static/images/in1.png" alt="Selected input portrait">
+            </div>
+            <div class="stage-connector" aria-hidden="true">
+              <span>Any3DAvatar</span>
+              <b>→</b>
+            </div>
+            <div class="explorer-panel">
+              <span class="media-label">3D reconstruction · novel views</span>
+              <video id="explorer-video" muted loop playsinline controls preload="metadata"
+                title="Selected reconstructed avatar turntable">
+                <source src="./static/videos/video1.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="explorer-panel explorer-splat-panel" id="explorer-splat-panel">
+              <div class="explorer-splat-heading">
+                <span class="media-label">Interactive 3D Gaussian</span>
+                <button class="splat-expand-button" id="splat-expand" type="button"
+                  aria-label="Open interactive 3D view in a large window" aria-haspopup="dialog"
+                  aria-expanded="false">&#x26F6; Enlarge</button>
               </div>
-              <!-- 第二列：结果1 -->
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <video muted loop autoplay width="75%">
-                    <source src="./static/videos/4D21.mp4" type="video/mp4">
-                  </video>
-                </h2>
-              </div>
-              <!-- 第三列：结果2 -->
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <video muted loop autoplay width="75%">
-                    <source src="./static/videos/4D22.mp4" type="video/mp4">
-                  </video>
-                </h2>
-              </div>
+              <iframe id="explorer-splat" src="./splat/index.html?url="
+                title="Interactive 3D Gaussian for reconstruction example 1" loading="lazy"
+                allowfullscreen tabindex="0"></iframe>
             </div>
           </div>
+          <div class="explorer-toolbar">
+            <p id="explorer-status" aria-live="polite">Example 01 of 12</p>
+            <div class="explorer-arrows">
+              <button id="explorer-prev" type="button" aria-label="Show previous example">←</button>
+              <button id="explorer-next" type="button" aria-label="Show next example">→</button>
+            </div>
+          </div>
+          <div class="identity-strip" id="identity-strip" role="tablist"
+            aria-label="Choose a reconstruction example"></div>
+        </div>
+      </div>
+    </section>
 
-          <!-- 新增模块2：Multi-Style 3D Head Generation -->
-          <div style="margin-top: 4rem;"></div>
-          <h3 class="title is-4 has-text-centered">Multi-Style 3D Head Generation</h3>
-          <h3 class="title is-4 has-text-centered"></h3>
-          <div class="container is-max-desktop">
-            <div class="columns is-centered">
-              <!-- 多风格 例子1 -->
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <img src="./static/images/multi2.png" width="75%">
-                </h2>
-                <video muted loop autoplay>
+    <section class="section section-tinted" id="extensions">
+      <div class="page-shell">
+        <div class="section-heading split-heading">
+          <div>
+            <p class="section-kicker">Extended capabilities</p>
+            <h2>Beyond static reconstruction</h2>
+          </div>
+          <p>
+            The same full-head representation supports dynamic animation, diverse visual styles, and text-conditioned
+            generation.
+          </p>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-heading">
+            <div>
+              <span class="capability-tag">4D</span>
+              <h3>Dynamic head reconstruction</h3>
+            </div>
+            <p>Identity is reconstructed from one image, then animated by a driving sequence.</p>
+          </div>
+          <div class="dynamic-list">
+            <article class="dynamic-case">
+              <div class="labeled-media">
+                <span>Input image</span>
+                <img src="./static/images/4D1.jpg" alt="First identity input for 4D reconstruction" loading="lazy">
+              </div>
+              <div class="labeled-media">
+                <span>Driving motion</span>
+                <video muted loop playsinline preload="metadata" title="Driving motion for the first 4D example">
+                  <source src="./static/videos/4D11.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="labeled-media emphasized-media">
+                <span>Animated 3D result</span>
+                <video muted loop playsinline preload="metadata" title="Animated result for the first 4D example">
+                  <source src="./static/videos/4D12.mp4" type="video/mp4">
+                </video>
+              </div>
+            </article>
+            <article class="dynamic-case">
+              <div class="labeled-media">
+                <span>Input image</span>
+                <img src="./static/images/4D2.png" alt="Second identity input for 4D reconstruction" loading="lazy">
+              </div>
+              <div class="labeled-media">
+                <span>Driving motion</span>
+                <video muted loop playsinline preload="metadata" title="Driving motion for the second 4D example">
+                  <source src="./static/videos/4D21.mp4" type="video/mp4">
+                </video>
+              </div>
+              <div class="labeled-media emphasized-media">
+                <span>Animated 3D result</span>
+                <video muted loop playsinline preload="metadata" title="Animated result for the second 4D example">
+                  <source src="./static/videos/4D22.mp4" type="video/mp4">
+                </video>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-heading">
+            <div>
+              <span class="capability-tag">Style</span>
+              <h3>Multi-style 3D head generation</h3>
+            </div>
+            <p>Stylized inputs remain recognizable while producing coherent full-head novel views.</p>
+          </div>
+          <div class="style-grid">
+            <article class="paired-card">
+              <div>
+                <span class="media-label">Stylized input</span>
+                <img src="./static/images/multi2.png" alt="Painterly stylized portrait input" loading="lazy">
+              </div>
+              <div>
+                <span class="media-label">3D result</span>
+                <video muted loop playsinline preload="metadata" title="3D result for the painterly input">
                   <source src="./static/videos/style3.mp4" type="video/mp4">
                 </video>
               </div>
-              <!-- 多风格 例子2 -->
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <img src="./static/images/multi1.png" width="75%">
-                </h2>
-                <video muted loop autoplay>
+            </article>
+            <article class="paired-card">
+              <div>
+                <span class="media-label">Stylized input</span>
+                <img src="./static/images/multi1.png" alt="Illustrated portrait input" loading="lazy">
+              </div>
+              <div>
+                <span class="media-label">3D result</span>
+                <video muted loop playsinline preload="metadata" title="3D result for the illustrated input">
                   <source src="./static/videos/style2.mp4" type="video/mp4">
                 </video>
               </div>
-              <!-- 多风格 例子3 -->
-              <div class="column">
-                <h2 style="text-align: center;">
-                  <img src="./static/images/multi3.png" width="75%">
-                </h2>
-                <video muted loop autoplay>
+            </article>
+            <article class="paired-card">
+              <div>
+                <span class="media-label">Stylized input</span>
+                <img src="./static/images/multi3.png" alt="Graphic stylized portrait input" loading="lazy">
+              </div>
+              <div>
+                <span class="media-label">3D result</span>
+                <video muted loop playsinline preload="metadata" title="3D result for the graphic input">
                   <source src="./static/videos/style1.mp4" type="video/mp4">
                 </video>
               </div>
-            </div>
+            </article>
           </div>
+        </div>
 
-
-          <!-- 新增模块3：Text-to-3D Head Generation -->
-          <div style="margin-top: 4rem;"></div>
-          <h3 class="title is-4 has-text-centered">Text-to-3D Head Generation</h3>
-          <h3 class="title is-4 has-text-centered"></h3>
-          <div class="container is-max-desktop">
-            <div class="columns is-centered">
-              <!-- 文本生成 例子1 -->
-              <div class="column">
-                <h2
-                  style="text-align: center; font-size: 1rem; margin-bottom: 1rem; min-height: 6rem; display: flex; align-items: center; justify-content: center;">
-                  Close-up portrait of an elderly dark-skinned man, deep facial wrinkles, short grey hair. Serious, calm
-                  expression, direct gaze. Bare shoulders, pure white background, highly detailed realism.
-                </h2>
-                <h2 style="text-align: center;">
-                  <img src="./static/images/textin_1.png" width="75%">
-                </h2>
-                <video muted loop autoplay>
-                  <source src="./static/videos/text1.mp4" type="video/mp4">
-                </video>
+        <div class="subsection">
+          <div class="subsection-heading">
+            <div>
+              <span class="capability-tag">Text</span>
+              <h3>Text-to-3D head generation</h3>
+            </div>
+            <p>Natural-language descriptions specify identity and appearance before full-head generation.</p>
+          </div>
+          <div class="text-result-grid">
+            <article class="prompt-card">
+              <blockquote>
+                “Close-up portrait of an elderly dark-skinned man, deep facial wrinkles, short grey hair. Serious,
+                calm expression, direct gaze, highly detailed realism.”
+              </blockquote>
+              <div class="prompt-media">
+                <div>
+                  <span class="media-label">Generated portrait</span>
+                  <img src="./static/images/textin_1.png" alt="Portrait generated from the first text prompt" loading="lazy">
+                </div>
+                <div>
+                  <span class="media-label">3D result</span>
+                  <video muted loop playsinline preload="metadata" title="3D head generated from the first prompt">
+                    <source src="./static/videos/text1.mp4" type="video/mp4">
+                  </video>
+                </div>
               </div>
-              <!-- 文本生成 例子2 -->
-              <div class="column">
-                <h2
-                  style="text-align: center; font-size: 1rem; margin-bottom: 1rem; min-height: 6rem; display: flex; align-items: center; justify-content: center;">
-                  Close-up portrait of a young South Asian man, thick black hair, short beard. Bright smile showing
-                  teeth, direct gaze. Pure white background, realistic photography.
-                </h2>
-                <h2 style="text-align: center;">
-                  <img src="./static/images/textin_2.png" width="75%">
-                </h2>
-                <video muted loop autoplay>
-                  <source src="./static/videos/text2.mp4" type="video/mp4">
-                </video>
+            </article>
+            <article class="prompt-card">
+              <blockquote>
+                “Close-up portrait of a young South Asian man, thick black hair, short beard. Bright smile showing
+                teeth, direct gaze, realistic photography.”
+              </blockquote>
+              <div class="prompt-media">
+                <div>
+                  <span class="media-label">Generated portrait</span>
+                  <img src="./static/images/textin_2.png" alt="Portrait generated from the second text prompt" loading="lazy">
+                </div>
+                <div>
+                  <span class="media-label">3D result</span>
+                  <video muted loop playsinline preload="metadata" title="3D head generated from the second prompt">
+                    <source src="./static/videos/text2.mp4" type="video/mp4">
+                  </video>
+                </div>
               </div>
-            </div>
-          </div>
-          <!-- 模块4 -->
-          <div style="margin-top: 4rem;"></div>
-          <h3 class="title is-4 has-text-centered">Evaluation against Baselines</h3>
-          <div class="columns is-centered">
-            <div class="column">
-              <video muted loop autoplay>
-                <source src="./static/videos/comparison_video-page.mp4" type="video/mp4">
-              </video>
-            </div>
-          </div>
-          <!-- 模块5 -->
-          <div style="margin-top: 4rem;"></div>
-          <h3 class="title is-4 has-text-centered">comparison with image-to-3D methods</h3>
-          <div class="columns is-centered">
-            <div class="column">
-              <video muted loop autoplay width="95%" style="display: block; margin: 0 auto;">
-                <source src="./static/videos/comparison_with_123D.mp4" type="video/mp4">
-              </video>
-            </div>
-          </div>
-          <!-- 模块5 -->
-          <div style="margin-top: 4rem;"></div>
-          <h3 class="title is-4 has-text-centered">comparison with 360 video generation methods</h3>
-          <div class="columns is-centered">
-            <div class="column">
-              <video muted loop autoplay width="100%" style="display: block; margin: 0 auto;">
-                <source src="./static/videos/comparison_with_diffportrait360.mp4" type="video/mp4">
-              </video>
-            </div>
+            </article>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
+    <section class="section" id="comparisons">
+      <div class="page-shell">
+        <div class="section-heading split-heading">
+          <div>
+            <p class="section-kicker">Evaluation</p>
+            <h2>Qualitative comparison with prior methods</h2>
+          </div>
+          <p>
+            Use the tabs to compare full-head reconstruction quality, general image-to-3D systems, and 360° portrait
+            generation.
+          </p>
+        </div>
+
+        <div class="comparison-viewer">
+          <div class="comparison-tabs" role="tablist" aria-label="Comparison category">
+            <button id="comparison-tab-baselines" type="button" role="tab" aria-selected="true"
+              aria-controls="comparison-panel" data-comparison="baselines">Full-head baselines</button>
+            <button id="comparison-tab-image3d" type="button" role="tab" aria-selected="false"
+              aria-controls="comparison-panel" data-comparison="image3d">Image-to-3D</button>
+            <button id="comparison-tab-video360" type="button" role="tab" aria-selected="false"
+              aria-controls="comparison-panel" data-comparison="video360">360° generation</button>
+          </div>
+          <div class="comparison-panel" id="comparison-panel" role="tabpanel"
+            aria-labelledby="comparison-tab-baselines">
+            <div class="comparison-copy">
+              <p class="comparison-overline" id="comparison-overline">Evaluation against full-head baselines</p>
+              <p id="comparison-description">
+                Side-by-side novel views emphasize identity consistency, back-of-head completion, hair, clothing, and
+                fine facial structure.
+              </p>
+            </div>
+            <video id="comparison-video" muted loop playsinline controls preload="metadata"
+              title="Qualitative comparison against full-head reconstruction baselines">
+              <source src="./static/videos/comparison_video-page.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="splat-modal" id="splat-modal" role="dialog" aria-modal="true"
+    aria-label="Enlarged interactive 3D Gaussian" hidden>
+    <div class="splat-modal-backdrop" data-close-splat></div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="page-shell footer-inner">
+      <div>
+        <strong>Any3DAvatar</strong>
+        <p>Fast and high-quality full-head 3D avatar reconstruction from a single portrait.</p>
+      </div>
+      <a href="#top">Back to top ↑</a>
+    </div>
+  </footer>
 </body>
 
 </html>
